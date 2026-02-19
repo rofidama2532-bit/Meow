@@ -1,0 +1,113 @@
+class Node:
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+
+class BST:
+    def __init__(self):
+        self.root = None
+
+    # 1. CREATE / INSERT (การเพิ่มข้อมูล)
+    def insert(self, key):
+        if self.root is None:
+            self.root = Node(key)
+        else:
+            self._insert_recursive(self.root, key)
+
+    def _insert_recursive(self, node, key):
+        if key < node.key:
+            if node.left is None:
+                node.left = Node(key)
+            else:
+                self._insert_recursive(node.left, key)
+        elif key > node.key:
+            if node.right is None:
+                node.right = Node(key)
+            else:
+                self._insert_recursive(node.right, key)
+
+    # 2. READ / SEARCH (การค้นหาข้อมูล)
+    def search(self, key):
+        return self._search_recursive(self.root, key)
+
+    def _search_recursive(self, node, key):
+        if node is None or node.key == key:
+            return node
+        if key < node.key:
+            return self._search_recursive(node.left, key)
+        return self._search_recursive(node.right, key)
+
+    # 3. UPDATE (การแก้ไข - ใน BST มักจะเป็นการลบค่าเก่าแล้วเพิ่มค่าใหม่)
+    def update(self, old_key, new_key):
+        if self.search(old_key):
+            self.delete(old_key)
+            self.insert(new_key)
+            print(f"Updated {old_key} to {new_key}")
+        else:
+            print(f"Key {old_key} not found.")
+
+    # 4. DELETE (การลบข้อมูล)
+    def delete(self, key):
+        self.root = self._delete_recursive(self.root, key)
+
+    def _delete_recursive(self, root, key):
+        if root is None:
+            return root
+
+        if key < root.key:
+            root.left = self._delete_recursive(root.left, key)
+        elif key > root.key:
+            root.right = self._delete_recursive(root.right, key)
+        else:
+            # กรณีที่มีลูกคนเดียวหรือไม่มีลูก
+            if root.left is None:
+                return root.right
+            elif root.right is None:
+                return root.left
+
+            # กรณีมีลูก 2 คน: หาตัวที่น้อยที่สุดในฝั่งขวามาแทนที่
+            temp = self._min_value_node(root.right)
+            root.key = temp.key
+            root.right = self._delete_recursive(root.right, temp.key)
+        return root
+
+    def _min_value_node(self, node):
+        current = node
+        while current.left is not None:
+            current = current.left
+        return current
+
+    # ฟังก์ชันช่วยแสดงผล (In-order Traversal)
+    def display(self):
+        elements = []
+        self._inorder(self.root, elements)
+        return elements
+
+    def _inorder(self, node, elements):
+        if node:
+            self._inorder(node.left, elements)
+            elements.append(node.key)
+            self._inorder(node.right, elements)
+
+# --- การใช้งานโปรแกรม ---
+bst = BST()
+
+# CREATE
+keys = [50, 30, 70, 20, 40, 60, 80]
+for k in keys:
+    bst.insert(k)
+print("Initial Tree (In-order):", bst.display())
+
+# READ
+find = 40
+result = bst.search(find)
+print(f"Search {find}:", "Found" if result else "Not Found")
+
+# UPDATE
+bst.update(30, 35)
+print("After Update (30 -> 35):", bst.display())
+
+# DELETE
+bst.delete(50)
+print("After Delete Root (50):", bst.display())
